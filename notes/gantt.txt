@@ -1,0 +1,11 @@
+[CR, 14-10-01] reclustering
+[MH, 14-10-14] integrate raw data view in KV
+
+[**, 14-11-01] mockups, decisions on the techno
+
+[**, 14-12-01] kwiklib2
+
+[CR, 15-03-01] Vispy & WebGL, widget controller
+[MH, 15-03-01] channel list, raw data widget
+[**, 15-05-01] new KV in the notebook
+
