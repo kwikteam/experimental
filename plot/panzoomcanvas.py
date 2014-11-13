@@ -73,6 +73,12 @@ class PanZoomCanvas(app.Canvas):
                                      y0 * (1./scale_y - 1./scale_y_new))
             self.update()
 
+    def on_key_press(self, event):
+        if event.key == 'R':
+            self._pan_zoom['scale'].value = (1., 1.)
+            self._pan_zoom['pan'].value = (0., 0.)
+            self.update()
+
     def add_visual(self, name, value):
         value.program.vert['panzoom'] = self._pan_zoom
         self._visuals.append(value)

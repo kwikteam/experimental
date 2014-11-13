@@ -41,8 +41,6 @@ class SignalsVisual(Visual):
     uniform float u_nsamples;
 
     void main() {
-        float nrows = u_nsignals;
-
         vec2 position = vec2($get_x(a_index.y),
                              $get_y(a_index.x, a_position));
         gl_Position = vec4($panzoom(position), 0.0, 1.0);
@@ -52,7 +50,6 @@ class SignalsVisual(Visual):
     """
 
     FRAGMENT_SHADER = """
-    //uniform sampler2D u_colormap;
     varying vec2 v_index;
 
     void main() {
@@ -69,31 +66,30 @@ class SignalsVisual(Visual):
 
         self.program = ModularProgram(self.VERTEX_SHADER, self.FRAGMENT_SHADER)
 
-        m, n = signals.shape
-        y = signals
-        # color = np.repeat(,
-        #                       n, axis=0).astype(np.float32)
-        index = np.c_[np.repeat(np.arange(m), n),
-                      np.tile(np.arange(n), m)].astype(np.float32)
+        nsignals, nsamples = signals.shape
 
-        self.program['a_position'] = y.reshape(-1, 1)
+        index = np.c_[np.repeat(np.arange(nsignals), nsamples),
+                      np.tile(np.arange(nsamples), nsignals)] \
+                .astype(np.float32)
+
+        self.program['a_position'] = signals.reshape(-1, 1)
         self.program['a_index'] = index
 
         x_transform = Function(X_TRANSFORM)
-        x_transform['nsamples'] = n
+        x_transform['nsamples'] = nsamples
         self.program.vert['get_x'] = x_transform
 
         y_transform = Function(Y_TRANSFORM)
         y_transform['scale'] = 5.
-        y_transform['nsignals'] = m
+        y_transform['nsignals'] = nsignals
         self.program.vert['get_y'] = y_transform
 
         colormap = Function(DISCRETE_CMAP)
-        cmap = np.random.uniform(size=(1, m, 3), low=.5, high=.9) \
+        cmap = np.random.uniform(size=(1, nsignals, 3), low=.5, high=.9) \
                .astype(np.float32)
         colormap['colormap'] = Variable('uniform sampler2D u_colormap',
                                         gloo.Texture2D(cmap))
-        colormap['ncolors'] = m
+        colormap['ncolors'] = nsignals
         self.program.frag['get_color'] = colormap
 
     def draw(self):
