@@ -23,6 +23,13 @@ float get_y(float y_index, float sample) {
 }
 """
 
+DISCRETE_CMAP = """
+vec3 get_color(float index) {
+    float x = (index + .5) / $ncolors;
+    return texture2D($colormap, vec2(x, .5)).rgb;
+}
+"""
+
 class SignalsVisual(Visual):
     VERTEX_SHADER = """
     attribute float a_position;
@@ -33,9 +40,6 @@ class SignalsVisual(Visual):
     uniform float u_nsignals;
     uniform float u_nsamples;
 
-    attribute vec3 a_color;
-    varying vec4 v_color;
-
     void main() {
         float nrows = u_nsignals;
 
@@ -43,17 +47,16 @@ class SignalsVisual(Visual):
                              $get_y(a_index.x, a_position));
         gl_Position = vec4($panzoom(position), 0.0, 1.0);
 
-        v_color = vec4(a_color, 1.);
         v_index = a_index;
     }
     """
 
     FRAGMENT_SHADER = """
-    varying vec4 v_color;
+    //uniform sampler2D u_colormap;
     varying vec2 v_index;
 
     void main() {
-        gl_FragColor = v_color;
+        gl_FragColor = vec4($get_color(v_index.x), 1.);
 
         // Discard vertices between two signals.
         if ((fract(v_index.x) > 0.))
@@ -68,13 +71,12 @@ class SignalsVisual(Visual):
 
         m, n = signals.shape
         y = signals
-        color = np.repeat(np.random.uniform(size=(m, 3), low=.5, high=.9),
-                              n, axis=0).astype(np.float32)
+        # color = np.repeat(,
+        #                       n, axis=0).astype(np.float32)
         index = np.c_[np.repeat(np.arange(m), n),
                       np.tile(np.arange(n), m)].astype(np.float32)
 
         self.program['a_position'] = y.reshape(-1, 1)
-        self.program['a_color'] = color
         self.program['a_index'] = index
 
         x_transform = Function(X_TRANSFORM)
@@ -85,6 +87,14 @@ class SignalsVisual(Visual):
         y_transform['scale'] = 5.
         y_transform['nsignals'] = m
         self.program.vert['get_y'] = y_transform
+
+        colormap = Function(DISCRETE_CMAP)
+        cmap = np.random.uniform(size=(1, m, 3), low=.5, high=.9) \
+               .astype(np.float32)
+        colormap['colormap'] = Variable('uniform sampler2D u_colormap',
+                                        gloo.Texture2D(cmap))
+        colormap['ncolors'] = m
+        self.program.frag['get_color'] = colormap
 
     def draw(self):
         self.program.draw('line_strip')
