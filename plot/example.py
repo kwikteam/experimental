@@ -13,6 +13,7 @@ def channel_scale(data):
     return scale
 
 
+# @profile
 def load_data(filename, sample_start=0, sample_stop=None, scale=None):
     with h5py.File(filename) as f:
         data = f['/recordings/0/data']
@@ -41,9 +42,9 @@ def get_data_info(filename):
 
 
 class Pager(object):
-    def __init__(self, nsamples_total=None, nsamples_page=20000):
-        self.nsamples_total = nsamples_total
-        self.nsamples_page = nsamples_page
+    def __init__(self, nsamples_total=None, nsamples_page=None):
+        self.nsamples_total = int(nsamples_total)
+        self.nsamples_page = int(nsamples_page)
         self._index = 0
         self._page_max = self.to_page(self.nsamples_total - 1)
 
@@ -69,11 +70,11 @@ class Pager(object):
 
 
 class DataLoader(object):
-    def __init__(self, filename):
+    def __init__(self, filename, page_duration=1.):
         self.filename = filename
         (self.nsamples_total, self.nchannels), self.sample_rate = get_data_info(filename)
         self.pager = Pager(nsamples_total=self.nsamples_total,
-                           nsamples_page=self.sample_rate)
+                           nsamples_page=page_duration * self.sample_rate)
         self._scale = None
         self._load()
 
@@ -114,7 +115,7 @@ class DataLoader(object):
 if __name__ == '__main__':
 
     filename = '/data/spikesorting/nick128_sorted/20141009_all_AdjGraph.raw.kwd'
-    loader = DataLoader(filename)
+    loader = DataLoader(filename, page_duration=1)
 
     c = PanZoomCanvas()
     c.signals = SignalsVisual(loader.data)
