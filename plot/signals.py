@@ -6,6 +6,23 @@ import numpy as np
 import os.path as op
 import math
 
+X_TRANSFORM = """
+float get_x(float x_index) {
+    // 'x_index' is between 0 and nsamples.
+    return -1 + 2 * x_index / ($nsamples-1);
+}
+"""
+
+Y_TRANSFORM = """
+float get_y(float y_index, float sample) {
+    // 'y_index' is between 0 and nsignals.
+    float a = $scale / $nsignals;
+    float b = -1 + 2 * (y_index + .5) / $nsignals;
+
+    return a * sample + b;
+}
+"""
+
 class SignalsVisual(Visual):
     VERTEX_SHADER = """
     attribute float a_position;
@@ -13,23 +30,18 @@ class SignalsVisual(Visual):
     attribute vec2 a_index;
     varying vec2 v_index;
 
-    uniform float u_size;
-    uniform float u_n;
+    uniform float u_nsignals;
+    uniform float u_nsamples;
 
     attribute vec3 a_color;
     varying vec4 v_color;
 
     void main() {
-        float nrows = u_size;
+        float nrows = u_nsignals;
 
-        float x = -1 + 2*a_index.y / (u_n-1);
-        vec2 position = vec2(x, a_position);
-
-        float a = 1./nrows;
-        float b = -1 + 2*(a_index.x+.5) / nrows;
-        vec2 position_tr = vec2(position.x, a*5*position.y+b);
-
-        gl_Position = vec4($panzoom(position_tr), 0.0, 1.0);
+        vec2 position = vec2($get_x(a_index.y),
+                             $get_y(a_index.x, a_position));
+        gl_Position = vec4($panzoom(position), 0.0, 1.0);
 
         v_color = vec4(a_color, 1.);
         v_index = a_index;
@@ -50,6 +62,8 @@ class SignalsVisual(Visual):
     """
 
     def __init__(self, signals):
+        super(SignalsVisual, self).__init__()
+
         self.program = ModularProgram(self.VERTEX_SHADER, self.FRAGMENT_SHADER)
 
         m, n = signals.shape
@@ -63,8 +77,14 @@ class SignalsVisual(Visual):
         self.program['a_color'] = color
         self.program['a_index'] = index
 
-        self.program['u_size'] = m
-        self.program['u_n'] = n
+        x_transform = Function(X_TRANSFORM)
+        x_transform['nsamples'] = n
+        self.program.vert['get_x'] = x_transform
+
+        y_transform = Function(Y_TRANSFORM)
+        y_transform['scale'] = 5.
+        y_transform['nsignals'] = m
+        self.program.vert['get_y'] = y_transform
 
     def draw(self):
         self.program.draw('line_strip')

@@ -7,14 +7,14 @@ import os.path as op
 import math
 
 PAN_ZOOM_FUNC = """
-vec2 pan_zoom(vec2 position_tr) {
-    return $scale * (position_tr + $pan);
+vec2 pan_zoom(vec2 position) {
+    return $scale * (position + $pan);
 }
 """
 
 class PanZoomCanvas(app.Canvas):
     def __init__(self):
-        super(PanZoomCanvas, self).__init__(keys='interactive')
+        super(PanZoomCanvas, self).__init__(keys='interactive', show=True)
         self._visuals = []
 
         self._pan_zoom = Function(PAN_ZOOM_FUNC)
@@ -59,18 +59,19 @@ class PanZoomCanvas(app.Canvas):
             self.update()
 
     def on_mouse_wheel(self, event):
-        dx = np.sign(event.delta[1])*.05
-        x0, y0 = self._normalize(event.pos)
-        pan_x, pan_y = self._pan_zoom['pan'].value
-        scale_x, scale_y = self._pan_zoom['scale'].value
-        scale_x_new, scale_y_new = (scale_x * math.exp(2.5*dx),
-                                    scale_y * math.exp(2.5*dx))
-        self._pan_zoom['scale'].value = (scale_x_new, scale_y_new)
-        self._pan_zoom['pan'].value = (pan_x -
-                                 x0 * (1./scale_x - 1./scale_x_new),
-                                 pan_y +
-                                 y0 * (1./scale_y - 1./scale_y_new))
-        self.update()
+        if not event.modifiers:
+            dx = np.sign(event.delta[1])*.05
+            x0, y0 = self._normalize(event.pos)
+            pan_x, pan_y = self._pan_zoom['pan'].value
+            scale_x, scale_y = self._pan_zoom['scale'].value
+            scale_x_new, scale_y_new = (scale_x * math.exp(2.5*dx),
+                                        scale_y * math.exp(2.5*dx))
+            self._pan_zoom['scale'].value = (scale_x_new, scale_y_new)
+            self._pan_zoom['pan'].value = (pan_x -
+                                     x0 * (1./scale_x - 1./scale_x_new),
+                                     pan_y +
+                                     y0 * (1./scale_y - 1./scale_y_new))
+            self.update()
 
     def add_visual(self, name, value):
         value.program.vert['panzoom'] = self._pan_zoom

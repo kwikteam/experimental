@@ -14,6 +14,6 @@ with h5py.File(filename) as f:
 c = PanZoomCanvas()
 c.signals = SignalsVisual(data)
 
-c.show()
+# c.show()
 app.run()
 
