@@ -56,13 +56,13 @@ class Pager(object):
                 self.nsamples_page * (self._page_index + 1))
 
     def next(self):
-        # if self._page_index >= self._page_max - 1:
-        #     raise ValueError("The last page has been reached.")
+        if self._page_index >= self._page_max - 1:
+            raise ValueError("The last page has been reached.")
         self._page_index = min(self._page_index + 1, self._page_max - 1)
 
     def previous(self):
-        # if self._page_index <= 0:
-        #     raise ValueError("The first page has been reached.")
+        if self._page_index <= 0:
+            raise ValueError("The first page has been reached.")
         self._page_index = max(self._page_index - 1, 0)
 
     def from_time(self, time):
@@ -83,15 +83,22 @@ class DataLoader(object):
     def _load(self):
         start, stop = self.pager.bounds()
         self.data = load_data(self.filename, start, stop)
+        print("Page", self.pager.page_index)
         return self.data
 
     def next(self):
-        self.pager.next()
-        return self._load()
+        try:
+            self.pager.next()
+            return self._load()
+        except:
+            return self.data
 
     def previous(self):
-        self.pager.previous()
-        return self._load()
+        try:
+            self.pager.previous()
+            return self._load()
+        except:
+            return self.data
 
     def first(self):
         self.pager.page_index = 0
