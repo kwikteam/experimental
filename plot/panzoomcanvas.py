@@ -65,7 +65,6 @@ class PanZoomCanvas(app.Canvas):
                                          x0 * (1./scale_x - 1./scale_x_new),
                                          pan_y +
                                          y0 * (1./scale_y - 1./scale_y_new))
-            print(self.bounds())
             self.update()
 
     def on_mouse_wheel(self, event):
