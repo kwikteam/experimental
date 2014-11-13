@@ -13,7 +13,6 @@ def channel_scale(data):
     return scale
 
 
-# @profile
 def load_data(filename, sample_start=0, sample_stop=None, scale=None):
     with h5py.File(filename) as f:
         data = f['/recordings/0/data']
@@ -25,7 +24,7 @@ def load_data(filename, sample_start=0, sample_stop=None, scale=None):
         # data on the GPU, but can be worked around later with an index buffer)
         data = data[sample_start:sample_stop,:]
         data = data.astype(np.float32)
-        data = data.T.copy()
+        data = data.T
 
         # Data normalization.
         mean = data.mean(axis=1)[:, None]
@@ -120,7 +119,6 @@ if __name__ == '__main__':
     c = PanZoomCanvas()
     c.signals = SignalsVisual(loader.data)
 
-
     @c.connect
     def on_mouse_wheel(event):
         if event.modifiers == (keys.CONTROL,):
@@ -144,4 +142,3 @@ if __name__ == '__main__':
             c.update()
 
     app.run()
-

@@ -67,15 +67,23 @@ class SignalsVisual(Visual):
         self.program = ModularProgram(self.VERTEX_SHADER, self.FRAGMENT_SHADER)
 
         nsignals, nsamples = data.shape
+        # nsamples, nsignals = data.shape
+
         self._data = data
 
-        index = np.c_[np.repeat(np.arange(nsignals), nsamples),
+        a_index = np.c_[np.repeat(np.arange(nsignals), nsamples),
                       np.tile(np.arange(nsamples), nsignals)] \
                 .astype(np.float32)
 
+        # Doesn't seem to work nor to be very efficient.
+        # indices = nsignals * np.arange(nsamples)
+        # indices = indices[None, :] + np.arange(nsignals)[:, None]
+        # indices = indices.flatten().astype(np.uint32)
+        # self._ibuffer = gloo.IndexBuffer(indices)
+
         self._buffer = gloo.VertexBuffer(data.reshape(-1, 1))
         self.program['a_position'] = self._buffer
-        self.program['a_index'] = index
+        self.program['a_index'] = a_index
 
         x_transform = Function(X_TRANSFORM)
         x_transform['nsamples'] = nsamples
