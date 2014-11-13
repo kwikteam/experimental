@@ -61,18 +61,18 @@ class SignalsVisual(Visual):
     }
     """
 
-    def __init__(self, signals):
+    def __init__(self, data):
         super(SignalsVisual, self).__init__()
 
         self.program = ModularProgram(self.VERTEX_SHADER, self.FRAGMENT_SHADER)
 
-        nsignals, nsamples = signals.shape
+        self.data = data
+        nsignals, nsamples = data.shape
 
         index = np.c_[np.repeat(np.arange(nsignals), nsamples),
                       np.tile(np.arange(nsamples), nsignals)] \
                 .astype(np.float32)
 
-        self.program['a_position'] = signals.reshape(-1, 1)
         self.program['a_index'] = index
 
         x_transform = Function(X_TRANSFORM)
@@ -92,6 +92,16 @@ class SignalsVisual(Visual):
                                         gloo.Texture2D(cmap))
         colormap['ncolors'] = nsignals
         self.program.frag['get_color'] = colormap
+
+    @property
+    def data(self):
+        return self._data
+
+    @data.setter
+    def data(self, value):
+        self._data = value
+        self.program['a_position'] = value.reshape(-1, 1)
+        self.update()
 
     @property
     def signal_scale(self):

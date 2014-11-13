@@ -34,6 +34,15 @@ class PanZoomCanvas(app.Canvas):
         w, h = float(self.width), float(self.height)
         return x/(w/2.)-1., y/(h/2.)-1.
 
+    def bounds(self):
+        pan_x, pan_y = self._pan_zoom['pan'].value
+        scale_x, scale_y = self._pan_zoom['scale'].value
+        xmin = -1 / scale_x - pan_x
+        xmax = +1 / scale_x - pan_x
+        ymin = -1 / scale_y - pan_y
+        ymax = +1 / scale_y - pan_y
+        return (xmin, ymin, xmax, ymax)
+
     def on_mouse_move(self, event):
         if event.is_dragging and not event.modifiers:
             x0, y0 = self._normalize(event.press_event.pos)
@@ -56,6 +65,7 @@ class PanZoomCanvas(app.Canvas):
                                          x0 * (1./scale_x - 1./scale_x_new),
                                          pan_y +
                                          y0 * (1./scale_y - 1./scale_y_new))
+            print(self.bounds())
             self.update()
 
     def on_mouse_wheel(self, event):
