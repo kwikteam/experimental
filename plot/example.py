@@ -46,6 +46,10 @@ class Pager(object):
     def page_index(self, value):
         self._page_index = np.clip(value, 0, self._page_max)
 
+    @property
+    def page_max(self):
+        return self._page_max
+
     # @property
     def bounds(self):
         return (self.nsamples_page * self._page_index,
@@ -89,6 +93,14 @@ class DataLoader(object):
         self.pager.previous()
         return self._load()
 
+    def first(self):
+        self.pager.page_index = 0
+        return self._load()
+
+    def end(self):
+        self.pager.page_index = self.pager.page_max - 1
+        return self._load()
+
     def from_time(self, time):
         self.pager.from_time(time)
         return self._load()
@@ -121,6 +133,12 @@ if __name__ == '__main__':
             c.update()
         elif event.key == 'right':
             c.signals.data = loader.next()
+            c.update()
+        elif event.key == 'Home':
+            c.signals.data = loader.first()
+            c.update()
+        elif event.key == 'End':
+            c.signals.data = loader.last()
             c.update()
 
     app.run()
