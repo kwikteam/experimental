@@ -80,7 +80,7 @@ class SignalsVisual(Visual):
         self.program.vert['get_x'] = x_transform
 
         y_transform = Function(Y_TRANSFORM)
-        y_transform['scale'] = 5.
+        y_transform['scale'] = Variable('uniform float u_signal_scale', 5.)
         y_transform['nsignals'] = nsignals
         self.program.vert['get_y'] = y_transform
 
