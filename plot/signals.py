@@ -83,6 +83,7 @@ class SignalsVisual(Visual):
         y_transform['scale'] = Variable('uniform float u_signal_scale', 5.)
         y_transform['nsignals'] = nsignals
         self.program.vert['get_y'] = y_transform
+        self._y_transform = y_transform
 
         colormap = Function(DISCRETE_CMAP)
         cmap = np.random.uniform(size=(1, nsignals, 3), low=.5, high=.9) \
@@ -91,6 +92,15 @@ class SignalsVisual(Visual):
                                         gloo.Texture2D(cmap))
         colormap['ncolors'] = nsignals
         self.program.frag['get_color'] = colormap
+
+    @property
+    def signal_scale(self):
+        return self._y_transform['scale'].value
+
+    @signal_scale.setter
+    def signal_scale(self, value):
+        self._y_transform['scale'].value = value
+        self.update()
 
     def draw(self):
         self.program.draw('line_strip')

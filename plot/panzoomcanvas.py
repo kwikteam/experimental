@@ -81,6 +81,7 @@ class PanZoomCanvas(app.Canvas):
 
     def add_visual(self, name, value):
         value.program.vert['panzoom'] = self._pan_zoom
+        value.events.update.connect(self.update)
         self._visuals.append(value)
 
     def __setattr__(self, name, value):
