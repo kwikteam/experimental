@@ -1,9 +1,16 @@
 from vispy import gloo
 from vispy import app
 from vispy.visuals import Visual
+from vispy.visuals.shaders import ModularProgram, Function, Variable
 import numpy as np
 import os.path as op
 import math
+
+PAN_ZOOM_FUNC = """
+vec2 pan_zoom(vec2 position_tr) {
+    return $scale * (position_tr + $pan);
+}
+"""
 
 class SignalsVisual(Visual):
     VERTEX_SHADER = """
@@ -12,8 +19,9 @@ class SignalsVisual(Visual):
     attribute vec2 a_index;
     varying vec2 v_index;
 
-    uniform vec2 u_scale;
-    uniform vec2 u_pan;
+    //uniform vec2 u_scale;
+    //uniform vec2 u_pan;
+
     uniform float u_size;
     uniform float u_n;
 
@@ -30,7 +38,7 @@ class SignalsVisual(Visual):
         float b = -1 + 2*(a_index.x+.5) / nrows;
         vec2 position_tr = vec2(position.x, a*5*position.y+b);
 
-        gl_Position = vec4(u_scale * (position_tr + u_pan), 0.0, 1.0);
+        gl_Position = vec4($transform(position_tr), 0.0, 1.0);
 
         v_color = vec4(a_color, 1.);
         v_index = a_index;
@@ -51,7 +59,13 @@ class SignalsVisual(Visual):
     """
 
     def __init__(self, signals):
-        self.program = gloo.Program(self.VERTEX_SHADER, self.FRAGMENT_SHADER)
+        self.program = ModularProgram(self.VERTEX_SHADER, self.FRAGMENT_SHADER)
+
+        pan_zoom = Function(PAN_ZOOM_FUNC)
+        pan_zoom['pan'] = Variable('uniform vec2 u_pan', (0., 0.))
+        pan_zoom['scale'] = Variable('uniform vec2 u_scale', (1., 1.))
+
+        self.program.vert['transform'] = pan_zoom
 
         m, n = signals.shape
         y = signals
@@ -63,8 +77,7 @@ class SignalsVisual(Visual):
         self.program['a_position'] = y.reshape(-1, 1)
         self.program['a_color'] = color
         self.program['a_index'] = index
-        self.program['u_scale'] = (1., 1.)
-        self.program['u_pan'] = (0., 0.)
+
         self.program['u_size'] = m
         self.program['u_n'] = n
 
@@ -76,11 +89,11 @@ class SignalsCanvas(app.Canvas):
     def __init__(self, signals):
         super(SignalsCanvas, self).__init__(keys='interactive')
         self.signals = signals
+        self.visual = SignalsVisual(self.signals)
 
     def on_initialize(self, event):
         gloo.set_state(clear_color='black', blend=True,
                        blend_func=('src_alpha', 'one_minus_src_alpha'))
-        self.visual = SignalsVisual(self.signals)
 
     def on_resize(self, event):
         self.width, self.height = event.size
