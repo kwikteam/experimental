@@ -72,8 +72,8 @@ class SignalsVisual(Visual):
         self._data = data
 
         a_index = np.c_[np.repeat(np.arange(nsignals), nsamples),
-                      np.tile(np.arange(nsamples), nsignals)] \
-                .astype(np.float32)
+                    np.tile(np.arange(nsamples), nsignals)] \
+                    .astype(np.float32)
 
         # Doesn't seem to work nor to be very efficient.
         # indices = nsignals * np.arange(nsamples)
