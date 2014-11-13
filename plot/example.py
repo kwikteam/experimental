@@ -7,44 +7,56 @@ from signals import SignalsVisual
 from panzoomcanvas import PanZoomCanvas
 
 
-def load_data(filename, sample_start=0, sample_stop=20000):
+def channel_scale(data):
+    m, M = data.min(), data.max()
+    scale = 1. / max(math.fabs(m), math.fabs(M))
+    return scale
+
+
+def load_data(filename, sample_start=0, sample_stop=None, scale=None):
     with h5py.File(filename) as f:
         data = f['/recordings/0/data']
+        if sample_stop is None:
+            sample_stop = f['/recordings/0'].attrs['sample_rate']
 
         # Data selection.
         # WARNING: beware the transposition (necessary to load contiguous
         # data on the GPU, but can be worked around later with an index buffer)
-        data = data[sample_start:sample_stop,:].astype(np.float32).T
+        data = data[sample_start:sample_stop,:]
+        data = data.astype(np.float32)
+        data = data.T.copy()
 
         # Data normalization.
-        data -= data.mean(axis=1)[:, None]
-        data *= 1. / np.abs(data).max()
+        mean = data.mean(axis=1)[:, None]
+        data -= mean
+        data *= scale
+
     return data
 
 
-def get_data_size(filename):
+def get_data_info(filename):
     with h5py.File(filename) as f:
         data = f['/recordings/0/data']
-        return data.shape
+        return data.shape, f['/recordings/0'].attrs['sample_rate']
 
 
 class Pager(object):
     def __init__(self, nsamples_total=None, nsamples_page=20000):
         self.nsamples_total = nsamples_total
         self.nsamples_page = nsamples_page
-        self._page_index = 0
-        self._page_max = self._to_page(self.nsamples_total - 1)
+        self._index = 0
+        self._page_max = self.to_page(self.nsamples_total - 1)
 
-    def _to_page(self, sample):
+    def to_page(self, sample):
         return sample // self.nsamples_page
 
     @property
-    def page_index(self):
-        return self._page_index
+    def index(self):
+        return self._index
 
-    @page_index.setter
-    def page_index(self, value):
-        self._page_index = np.clip(value, 0, self._page_max)
+    @index.setter
+    def index(self, value):
+        self._index = np.clip(value, 0, self._page_max - 1)
 
     @property
     def page_max(self):
@@ -52,79 +64,61 @@ class Pager(object):
 
     # @property
     def bounds(self):
-        return (self.nsamples_page * self._page_index,
-                self.nsamples_page * (self._page_index + 1))
-
-    def next(self):
-        if self._page_index >= self._page_max - 1:
-            raise ValueError("The last page has been reached.")
-        self._page_index = min(self._page_index + 1, self._page_max - 1)
-
-    def previous(self):
-        if self._page_index <= 0:
-            raise ValueError("The first page has been reached.")
-        self._page_index = max(self._page_index - 1, 0)
-
-    def from_time(self, time):
-        self.from_sample(int(time * 20000))
-
-    def from_sample(self, sample):
-        self.page_index = self._to_page(sample)
+        return (self.nsamples_page * self._index,
+                self.nsamples_page * (self._index + 1))
 
 
 class DataLoader(object):
     def __init__(self, filename):
         self.filename = filename
-        self.nsamples_total, self.nchannels = get_data_size(filename)
+        (self.nsamples_total, self.nchannels), self.sample_rate = get_data_info(filename)
         self.pager = Pager(nsamples_total=self.nsamples_total,
-                           nsamples_page=20000)
+                           nsamples_page=self.sample_rate)
+        self._scale = None
         self._load()
 
     def _load(self):
         start, stop = self.pager.bounds()
-        self.data = load_data(self.filename, start, stop)
-        print("Page", self.pager.page_index)
+        self.data = load_data(self.filename, start, stop,
+                              scale=self._scale or 1.)
+        if self._scale is None:
+            self._scale = channel_scale(self.data)
+            self.data *= self._scale
+        print("Page", self.pager.index)
         return self.data
 
     def next(self):
-        try:
-            self.pager.next()
-            return self._load()
-        except:
-            return self.data
-
-    def previous(self):
-        try:
-            self.pager.previous()
-            return self._load()
-        except:
-            return self.data
-
-    def first(self):
-        self.pager.page_index = 0
+        self.pager.index += 1
         return self._load()
 
-    def end(self):
-        self.pager.page_index = self.pager.page_max - 1
+    def previous(self):
+        self.pager.index -= 1
         return self._load()
 
     def from_time(self, time):
-        self.pager.from_time(time)
-        return self._load()
+        return self.from_sample(int(time * self.sample_rate))
 
     def from_sample(self, sample):
-        self.pager.from_sample(sample)
+        self.index = self.to_page(sample)
+        return self._load()
+
+    def first(self):
+        self.pager.index = 0
+        return self._load()
+
+    def last(self):
+        self.pager.index = self.pager.page_max - 1
         return self._load()
 
 
 if __name__ == '__main__':
 
     filename = '/data/spikesorting/nick128_sorted/20141009_all_AdjGraph.raw.kwd'
+    loader = DataLoader(filename)
 
     c = PanZoomCanvas()
-    c.signals = SignalsVisual(load_data(filename))
+    c.signals = SignalsVisual(loader.data)
 
-    loader = DataLoader(filename)
 
     @c.connect
     def on_mouse_wheel(event):

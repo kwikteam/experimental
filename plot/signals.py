@@ -66,13 +66,15 @@ class SignalsVisual(Visual):
 
         self.program = ModularProgram(self.VERTEX_SHADER, self.FRAGMENT_SHADER)
 
-        self.data = data
         nsignals, nsamples = data.shape
+        self._data = data
 
         index = np.c_[np.repeat(np.arange(nsignals), nsamples),
                       np.tile(np.arange(nsamples), nsignals)] \
                 .astype(np.float32)
 
+        self._buffer = gloo.VertexBuffer(data.reshape(-1, 1))
+        self.program['a_position'] = self._buffer
         self.program['a_index'] = index
 
         x_transform = Function(X_TRANSFORM)
@@ -100,7 +102,7 @@ class SignalsVisual(Visual):
     @data.setter
     def data(self, value):
         self._data = value
-        self.program['a_position'] = value.reshape(-1, 1)
+        self._buffer.set_subdata(value.reshape(-1, 1))
         self.update()
 
     @property
