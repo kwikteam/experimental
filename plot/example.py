@@ -1,20 +1,19 @@
 import numpy as np
 import h5py
 from vispy import app
-from signals import SignalsCanvas
+from signals import SignalsVisual
+from panzoomcanvas import PanZoomCanvas
 
 filename = '/data/spikesorting/nick128_sorted/20141009_all_AdjGraph.raw.kwd'
-f = h5py.File(filename)
-data = f['/recordings/0/data']
+with h5py.File(filename) as f:
+    data = f['/recordings/0/data']
 
-nchannels = data.shape[1]
-nsamples = 20000
+    data = data[:20000,:].astype(np.float32).T
+    data *= 5./np.abs(data).max()
 
-data = data[:nsamples,:].astype(np.float32).T
-data *= 5./np.abs(data).max()
+c = PanZoomCanvas()
+c.signals = SignalsVisual(data)
 
-c = SignalsCanvas(data)
 c.show()
 app.run()
 
-f.close()
