@@ -86,7 +86,6 @@ class DataLoader(object):
         if self._scale is None:
             self._scale = channel_scale(self.data)
             self.data *= self._scale
-        print("Page", self.pager.index)
         return self.data
 
     def next(self):
