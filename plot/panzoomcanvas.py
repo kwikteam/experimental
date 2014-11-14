@@ -13,8 +13,9 @@ vec2 pan_zoom(vec2 position) {
 """
 
 class PanZoomCanvas(app.Canvas):
-    def __init__(self):
-        super(PanZoomCanvas, self).__init__(keys='interactive', show=True)
+    def __init__(self, **kwargs):
+        super(PanZoomCanvas, self).__init__(keys='interactive',
+                                            show=True, **kwargs)
         self._visuals = []
 
         self._pan_zoom = Function(PAN_ZOOM_FUNC)
