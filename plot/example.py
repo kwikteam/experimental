@@ -5,7 +5,7 @@ from loader import DataLoader, PanZoomCanvas, SignalsVisual
 if __name__ == '__main__':
 
     filename = '/data/spikesorting/nick128_sorted/20141009_all_AdjGraph.raw.kwd'
-    loader = DataLoader(filename, page_duration=1)
+    loader = DataLoader(filename, page_duration=1, nchannels=128)
 
     c = PanZoomCanvas()
     c.signals = SignalsVisual(loader.data)

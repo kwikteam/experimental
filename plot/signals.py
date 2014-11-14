@@ -9,15 +9,15 @@ import math
 X_TRANSFORM = """
 float get_x(float x_index) {
     // 'x_index' is between 0 and nsamples.
-    return -1 + 2 * x_index / ($nsamples-1);
+    return -1. + 2. * x_index / (float($nsamples) - 1.);
 }
 """
 
 Y_TRANSFORM = """
 float get_y(float y_index, float sample) {
     // 'y_index' is between 0 and nsignals.
-    float a = $scale / $nsignals;
-    float b = -1 + 2 * (y_index + .5) / $nsignals;
+    float a = float($scale) / float($nsignals);
+    float b = -1. + 2. * (y_index + .5) / float($nsignals);
 
     return a * sample + b;
 }
@@ -25,7 +25,7 @@ float get_y(float y_index, float sample) {
 
 DISCRETE_CMAP = """
 vec3 get_color(float index) {
-    float x = (index + .5) / $ncolors;
+    float x = (index + .5) / float($ncolors);
     return texture2D($colormap, vec2(x, .5)).rgb;
 }
 """

@@ -69,9 +69,11 @@ class Pager(object):
 
 
 class DataLoader(object):
-    def __init__(self, filename, page_duration=1.):
+    def __init__(self, filename, page_duration=1., nchannels=None):
         self.filename = filename
         (self.nsamples_total, self.nchannels), self.sample_rate = get_data_info(filename)
+        if nchannels is not None:
+            self.nchannels = nchannels
         self.pager = Pager(nsamples_total=self.nsamples_total,
                            nsamples_page=page_duration * self.sample_rate)
         self._scale = None
@@ -80,7 +82,7 @@ class DataLoader(object):
     def _load(self):
         start, stop = self.pager.bounds()
         self.data = load_data(self.filename, start, stop,
-                              scale=self._scale or 1.)
+                              scale=self._scale or 1.)[:self.nchannels, :]
         if self._scale is None:
             self._scale = channel_scale(self.data)
             self.data *= self._scale
