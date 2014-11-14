@@ -98,8 +98,8 @@ class SignalsVisual(Visual):
         colormap = Function(DISCRETE_CMAP)
         cmap = np.random.uniform(size=(1, nsignals, 3), low=.5, high=.9) \
                .astype(np.float32)
-        colormap['colormap'] = Variable('uniform sampler2D u_colormap',
-                                        gloo.Texture2D(cmap))
+        tex = gloo.Texture2D((cmap * 255).astype(np.uint8))
+        colormap['colormap'] = Variable('uniform sampler2D u_colormap', tex)
         colormap['ncolors'] = nsignals
         self.program.frag['get_color'] = colormap
 
