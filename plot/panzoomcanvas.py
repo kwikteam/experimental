@@ -1,7 +1,7 @@
 from vispy import gloo
 from vispy import app
 from vispy.visuals import Visual
-from vispy.visuals.transforms import PanZoomTransform
+from vispy.visuals.transforms import PanZoomTransform, TransformSystem
 from vispy.visuals.shaders import Variable
 import numpy as np
 import os.path as op
@@ -17,6 +17,8 @@ class PanZoomCanvas(app.Canvas):
         self._pz = PanZoomTransform()
         self._pz.pan = Variable('uniform vec2 u_pan', (0, 0))
         self._pz.zoom = Variable('uniform vec2 u_zoom', (1, 1))
+
+        self._tr = TransformSystem(self)
 
     def on_initialize(self, event):
         gloo.set_state(clear_color='black', blend=True,
@@ -82,7 +84,7 @@ class PanZoomCanvas(app.Canvas):
             self.update()
 
     def add_visual(self, name, value):
-        value.program.vert['panzoom'] = self._pz
+        value._program.vert['transform'] = self._pz
         value.events.update.connect(self.update)
         self._visuals.append(value)
 
@@ -98,4 +100,4 @@ class PanZoomCanvas(app.Canvas):
     def on_draw(self, event):
         gloo.clear()
         for visual in self.visuals:
-            visual.draw()
+            visual.draw(self._tr)

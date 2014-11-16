@@ -43,7 +43,7 @@ class SignalsVisual(Visual):
     void main() {
         vec2 position = vec2($get_x(a_index.y),
                              $get_y(a_index.x, a_position));
-        gl_Position = vec4($panzoom(position), 0.0, 1.0);
+        gl_Position = vec4($transform(position), 0.0, 1.0);
 
         v_index = a_index;
     }
@@ -64,7 +64,7 @@ class SignalsVisual(Visual):
     def __init__(self, data):
         super(SignalsVisual, self).__init__()
 
-        self.program = ModularProgram(self.VERTEX_SHADER, self.FRAGMENT_SHADER)
+        self._program = ModularProgram(self.VERTEX_SHADER, self.FRAGMENT_SHADER)
 
         nsignals, nsamples = data.shape
         # nsamples, nsignals = data.shape
@@ -82,17 +82,17 @@ class SignalsVisual(Visual):
         # self._ibuffer = gloo.IndexBuffer(indices)
 
         self._buffer = gloo.VertexBuffer(data.reshape(-1, 1))
-        self.program['a_position'] = self._buffer
-        self.program['a_index'] = a_index
+        self._program['a_position'] = self._buffer
+        self._program['a_index'] = a_index
 
         x_transform = Function(X_TRANSFORM)
         x_transform['nsamples'] = nsamples
-        self.program.vert['get_x'] = x_transform
+        self._program.vert['get_x'] = x_transform
 
         y_transform = Function(Y_TRANSFORM)
         y_transform['scale'] = Variable('uniform float u_signal_scale', 5.)
         y_transform['nsignals'] = nsignals
-        self.program.vert['get_y'] = y_transform
+        self._program.vert['get_y'] = y_transform
         self._y_transform = y_transform
 
         colormap = Function(DISCRETE_CMAP)
@@ -101,7 +101,7 @@ class SignalsVisual(Visual):
         tex = gloo.Texture2D((cmap * 255).astype(np.uint8))
         colormap['colormap'] = Variable('uniform sampler2D u_colormap', tex)
         colormap['ncolors'] = nsignals
-        self.program.frag['get_color'] = colormap
+        self._program.frag['get_color'] = colormap
 
     @property
     def data(self):
@@ -122,5 +122,5 @@ class SignalsVisual(Visual):
         self._y_transform['scale'].value = value
         self.update()
 
-    def draw(self):
-        self.program.draw('line_strip')
+    def draw(self, transform_system):
+        self._program.draw('line_strip')

@@ -1,5 +1,6 @@
 import numpy as np
 from vispy import app, keys
+from vispy.visuals import TextVisual
 from loader import DataLoader, PanZoomCanvas, SignalsVisual
 
 if __name__ == '__main__':
@@ -9,6 +10,7 @@ if __name__ == '__main__':
 
     c = PanZoomCanvas(position=(400, 300), size=(800,600))
     c.signals = SignalsVisual(loader.data)
+    # c.text = TextVisual(text='hey', color='white', pos=(100,100), font_size=48)
 
     @c.connect
     def on_mouse_wheel(event):
