@@ -52,16 +52,14 @@ class PanZoomCanvas(app.Canvas):
             zoom_x, zoom_y = self._pz.zoom
 
             if button == 1:
-                self._pz.pan = (pan_x+dx/zoom_x,
-                                               pan_y+dy/zoom_y)
+                self._pz.pan = (pan_x + dx/zoom_x,
+                                pan_y + dy/zoom_y)
             elif button == 2:
-                zoom_x_new, zoom_y_new = (zoom_x * math.exp(2.5*dx),
-                                            zoom_y * math.exp(2.5*dy))
+                zoom_x_new, zoom_y_new = (zoom_x * math.exp(2.5 * dx),
+                                          zoom_y * math.exp(2.5 * dy))
                 self._pz.zoom = (zoom_x_new, zoom_y_new)
-                self._pz.pan = (pan_x -
-                                         x0 * (1./zoom_x - 1./zoom_x_new),
-                                         pan_y +
-                                         y0 * (1./zoom_y - 1./zoom_y_new))
+                self._pz.pan = (pan_x - x0 * (1./zoom_x - 1./zoom_x_new),
+                                pan_y + y0 * (1./zoom_y - 1./zoom_y_new))
             self.update()
 
     def on_mouse_wheel(self, event):
@@ -70,13 +68,11 @@ class PanZoomCanvas(app.Canvas):
             x0, y0 = self._normalize(event.pos)
             pan_x, pan_y = self._pz.pan
             zoom_x, zoom_y = self._pz.zoom
-            zoom_x_new, zoom_y_new = (zoom_x * math.exp(2.5*dx),
-                                        zoom_y * math.exp(2.5*dx))
+            zoom_x_new, zoom_y_new = (zoom_x * math.exp(2.5 * dx),
+                                      zoom_y * math.exp(2.5 * dx))
             self._pz.zoom = (zoom_x_new, zoom_y_new)
-            self._pz.pan = (pan_x -
-                                     x0 * (1./zoom_x - 1./zoom_x_new),
-                                     pan_y +
-                                     y0 * (1./zoom_y - 1./zoom_y_new))
+            self._pz.pan = (pan_x - x0 * (1./zoom_x - 1./zoom_x_new),
+                            pan_y + y0 * (1./zoom_y - 1./zoom_y_new))
             self.update()
 
     def on_key_press(self, event):
