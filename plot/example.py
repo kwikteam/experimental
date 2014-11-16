@@ -7,7 +7,7 @@ if __name__ == '__main__':
     filename = '/data/spikesorting/nick128_sorted/20141009_all_AdjGraph.raw.kwd'
     loader = DataLoader(filename, page_duration=1, nchannels=128)
 
-    c = PanZoomCanvas(size=(600,600))
+    c = PanZoomCanvas(position=(400, 300), size=(800,600))
     c.signals = SignalsVisual(loader.data)
 
     @c.connect
