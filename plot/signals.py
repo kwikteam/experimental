@@ -1,10 +1,14 @@
-from vispy import gloo
-from vispy import app
-from vispy.visuals import Visual
-from vispy.visuals.shaders import ModularProgram, Function, Variable
 import numpy as np
 import os.path as op
 import math
+
+from vispy import gloo
+from vispy import app, keys
+from vispy.visuals import Visual
+from vispy.visuals.shaders import ModularProgram, Function, Variable
+
+from loader import DataLoader
+from panzoomcanvas import PanZoomCanvas
 
 X_TRANSFORM = """
 float get_x(float x_index) {
@@ -124,3 +128,47 @@ class SignalsVisual(Visual):
 
     def draw(self, transform_system):
         self._program.draw('line_strip')
+
+
+class RawDataView(PanZoomCanvas):
+    def __init__(self, filename=None, page_duration=1., nchannels=None,
+                 **kwargs):
+        if 'position' not in kwargs:
+            kwargs['position'] = (400, 300)
+        if 'size' not in kwargs:
+            kwargs['size'] = (800,600)
+        super(RawDataView, self).__init__(**kwargs)
+
+        self.loader = DataLoader(filename, page_duration=page_duration,
+                            nchannels=nchannels)
+
+        self.signals = SignalsVisual(self.loader.data)
+
+    def on_mouse_wheel(self, event):
+        super(RawDataView, self).on_mouse_wheel(event)
+        if event.modifiers == (keys.CONTROL,):
+            sign = np.sign(event.delta[1])
+            self.signals.signal_scale = np.clip(self.signals.signal_scale \
+                                                *1.2**sign,
+                                                1e-2, 1e2)
+
+    def on_key_press(self, event):
+        super(RawDataView, self).on_key_press(event)
+        if event.key == 'Left':
+            self.signals.data = self.loader.previous()
+            self.update()
+        elif event.key == 'right':
+            self.signals.data = self.loader.next()
+            self.update()
+        elif event.key == 'Home':
+            self.signals.data = self.loader.first()
+            self.update()
+        elif event.key == 'End':
+            self.signals.data = self.loader.last()
+            self.update()
+
+
+def show_raw_data(filename, page_duration=1., nchannels=None):
+    view = RawDataView(filename=filename, page_duration=page_duration,
+                       nchannels=nchannels)
+    view.show()
