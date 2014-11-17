@@ -1,11 +1,79 @@
 from vispy import gloo
 from vispy import app
 from vispy.visuals import Visual
-from vispy.visuals.transforms import PanZoomTransform, TransformSystem
+from vispy.visuals.transforms import TransformSystem, BaseTransform
 from vispy.visuals.shaders import Variable
 import numpy as np
 import os.path as op
 import math
+
+
+class PanZoomTransform(BaseTransform):
+    glsl_map = """
+        vec2 pz_transform_map(vec2 pos) {
+            return $zoom * (pos + $pan);
+        }
+    """
+
+    glsl_imap = """
+        vec2 pz_transform_imap(vec2 pos) {
+            return (pos / $zoom - $pan);
+        }
+    """
+
+    Linear = True
+    Orthogonal = True
+    NonScaling = False
+    Isometric = False
+
+    def __init__(self):
+        super(PanZoomTransform, self).__init__()
+        self._pan = None
+        self._zoom = None
+
+    @property
+    def pan(self):
+        if isinstance(self._pan, Variable):
+            return np.array(self._pan.value, dtype=np.float32)
+        else:
+            raise NotImplementedError()
+
+    @pan.setter
+    def pan(self, value):
+        if isinstance(value, Variable):
+            self._pan = value
+            self._shader_map['pan'] = self._pan
+        elif isinstance(self._pan, Variable):
+            self._pan.value = value
+        else:
+            raise NotImplementedError()
+
+    @property
+    def zoom(self):
+        if isinstance(self._zoom, Variable):
+            return np.array(self._zoom.value, dtype=np.float32)
+        else:
+            raise NotImplementedError()
+
+    @zoom.setter
+    def zoom(self, value):
+        if isinstance(value, Variable):
+            self._zoom = value
+            self._shader_map['zoom'] = self._zoom
+        elif isinstance(self._zoom, Variable):
+            self._zoom.value = value
+        else:
+            raise NotImplementedError()
+
+    def map(self, coords):
+        if not isinstance(coords, np.ndarray):
+            coords = np.array(coords)
+        return self.zoom[None, :] * (coords + self.pan[None, :])
+
+    def imap(self, coords):
+        if not isinstance(coords, np.ndarray):
+            coords = np.array(coords)
+        return (coords / self.zoom[None, :]) - self.pan[None, :]
 
 
 class PanZoomCanvas(app.Canvas):
