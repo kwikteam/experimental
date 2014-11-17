@@ -168,7 +168,7 @@ class RawDataView(PanZoomCanvas):
             self.update()
 
 
-def show_raw_data(filename, page_duration=1., nchannels=None):
+def show_raw_data(filename, page_duration=1., nchannels=None, **kwargs):
     view = RawDataView(filename=filename, page_duration=page_duration,
-                       nchannels=nchannels)
+                       nchannels=nchannels, **kwargs)
     view.show()
