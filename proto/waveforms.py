@@ -99,16 +99,21 @@ class Waveforms(Visual):
                                            low=0,
                                            high=nclusters).astype(np.float32)
 
+        # nwaveforms = sum_spike nchannels_spike
+        # TODO: update this for sparse
+        nchannels_per_spike = nchannels * np.ones(nspikes, dtype=np.int32)
+        channels_per_spike = np.tile(np.arange(nchannels).astype(np.float32),
+                                     nspikes)
+
+        nwaveforms = np.sum(nchannels_per_spike)
+
         a_time = np.tile(np.linspace(-1., 1.,
                                      nsamples).astype(np.float32),
-                         nchannels * nspikes)
+                         nwaveforms)
 
-        a_cluster = np.repeat(spike_clusters, nchannels * nsamples)
-
-        a_channel = np.tile(np.repeat(np.arange(nchannels).astype(np.float32),
-                                       nsamples), nspikes)
+        a_cluster = np.repeat(spike_clusters, nchannels_per_spike * nsamples)
+        a_channel = np.repeat(channels_per_spike, nsamples)
         a_box = np.c_[a_cluster, a_channel]
-        assert a_box.shape[1] == 2
 
         u_channel_pos = np.dstack((channel_positions.reshape((1,
                                                               nchannels, 2)),
