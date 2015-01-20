@@ -1,3 +1,14 @@
+"""
+TODO
+* use vispy transforms for box placement
+* refactor probe renormalization
+* refactor data baking
+* add more interactivity
+* add masks, alpha, depth
+* support sparse structure
+* use ST instead of PanZoom
+"""
+
 import math
 
 import numpy as np
@@ -8,6 +19,18 @@ from vispy.visuals import Visual
 from vispy.visuals.shaders import ModularProgram, Function, Variable
 
 from panzoomcanvas import PanZoomCanvas
+
+"""
+sparse
+
+a_box: (cluster, channel)       0..nclusters-1, 0..nchannels-1    \sum_spike nchannels_spike
+repeated nsamples
+
+a_cluster
+a_channel
+
+"""
+
 
 class Waveforms(Visual):
     VERT_SHADER = """
