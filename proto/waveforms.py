@@ -20,17 +20,6 @@ from vispy.visuals.shaders import ModularProgram, Function, Variable
 
 from panzoomcanvas import PanZoomCanvas
 
-"""
-sparse
-
-a_box: (cluster, channel)       0..nclusters-1, 0..nchannels-1    \sum_spike nchannels_spike
-repeated nsamples
-
-a_cluster
-a_channel
-
-"""
-
 
 class Waveforms(Visual):
     VERT_SHADER = """
@@ -99,11 +88,12 @@ class Waveforms(Visual):
                                            low=0,
                                            high=nclusters).astype(np.float32)
 
-        # nwaveforms = sum_spike nchannels_spike
-        # TODO: update this for sparse
-        nchannels_per_spike = nchannels * np.ones(nspikes, dtype=np.int32)
+        # this should just be 'channel' in a SparseCSR
         channels_per_spike = np.tile(np.arange(nchannels).astype(np.float32),
                                      nspikes)
+
+        # this should be np.diff(spikes_ptr) in a SparseCSR
+        nchannels_per_spike = nchannels * np.ones(nspikes, dtype=np.int32)
 
         nwaveforms = np.sum(nchannels_per_spike)
 
