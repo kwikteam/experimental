@@ -62,11 +62,6 @@ class Waveforms(Visual):
     def __init__(self, **kwargs):
         super(Waveforms, self).__init__(**kwargs)
 
-        nclusters = 3
-        nchannels = 32
-        nsamples = 40
-        nspikes = 100
-
         a_data = .25 * np.random.randn(nspikes, nchannels,
                                        nsamples).astype(np.float32)
 
@@ -75,9 +70,9 @@ class Waveforms(Visual):
 
         # WARNING: texture values for channel positions must be in [0,1]
         # and will be rescaled to [-1,1]
-        channel_positions = np.zeros((nchannels, 2)).astype(np.float32)
-        channel_positions[:, 0] = .5
-        channel_positions[:, 1] = np.linspace(0.1, .9, nchannels)
+        # channel_positions = np.zeros((nchannels, 2)).astype(np.float32)
+        # channel_positions[:, 0] = .5
+        # channel_positions[:, 1] = np.linspace(0.1, .9, nchannels)
 
         spike_clusters = np.random.randint(size=nspikes,
                                            low=0,
@@ -114,6 +109,16 @@ class Waveforms(Visual):
         gloo.set_state(clear_color='black', blend=True,
                        blend_func=('src_alpha', 'one_minus_src_alpha'))
 
+    @property
+    def box_scale(self):
+        return self.program['u_data_scale']
+
+    @box_scale.setter
+    def box_scale(self, value):
+        assert isinstance(value, tuple) and len(value) == 2
+        self.program['u_data_scale'] = value
+        self.update()
+
     def draw(self, event):
         self.program.draw('line_strip')
 
@@ -122,7 +127,61 @@ class WaveformView(PanZoomCanvas):
         super(WaveformView, self).__init__(**kwargs)
         self.waveforms = Waveforms()
 
+    def on_key_press(self, event):
+        super(WaveformView, self).on_key_press(event)
+        if event.key == '+':
+            u, v = self.waveforms.box_scale
+            self.waveforms.box_scale = (u, v*1.1)
+        if event.key == '-':
+            u, v = self.waveforms.box_scale
+            self.waveforms.box_scale = (u, v/1.1)
+
 if __name__ == '__main__':
+
+
+
+    channel_positions = np.array([  (35, 310),
+                                    (-34, 300),
+                                    (33, 290),
+                                    (-32, 280),
+                                    (31, 270),
+                                    (-30, 260),
+                                    (29, 250),
+                                    (-28, 240),
+                                    (27, 230),
+                                    (-26, 220),
+                                    (25, 210),
+                                    (-24, 200),
+                                    (23, 190),
+                                    (-22, 180),
+                                    (21, 170),
+                                    (-20, 160),
+                                    (19, 150),
+                                    (-18, 140),
+                                    (17, 130),
+                                    (-16, 120),
+                                    (15, 110),
+                                    (-14, 100),
+                                    (13, 90),
+                                    (-12, 80),
+                                    (11, 70),
+                                    (-10, 60),
+                                    (9, 50),
+                                    (-8, 40),
+                                    (7, 30),
+                                    (-6, 20),
+                                    (5, 10),
+                                    (0, 0)], dtype=np.float32)
+
+    channel_positions -= channel_positions.min(axis=0)
+    channel_positions /= channel_positions.max(axis=0)
+    channel_positions = .2 + .6 * channel_positions
+
+    nclusters = 5
+    nchannels = 32
+    nsamples = 50
+    nspikes = 100
+
     c = WaveformView()
     c.show()
     app.run()
