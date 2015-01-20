@@ -95,7 +95,6 @@ class Canvas(app.Canvas):
                                                        wrapping='clamp_to_edge')
         self.program['u_cluster_color'] = gloo.Texture2D(u_cluster_color)
 
-    def on_initialize(self, event):
         gloo.set_state(clear_color='black', blend=True,
                        blend_func=('src_alpha', 'one_minus_src_alpha'))
 
