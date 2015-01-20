@@ -36,24 +36,22 @@ class Waveforms(Visual):
     VERT_SHADER = """
     attribute float a_data;  // -1..1
     attribute float a_time;  // -1..1
-    attribute float a_cluster;  // 0..(nclusters-1)
-    attribute float a_channel;  // 0..(nchannels-1)
+    attribute vec2 a_box;  // 0..(nclusters-1, nchannels-1)
 
     uniform float nclusters;
     uniform float nchannels;
-    //uniform float nsamples;
     uniform vec2 u_data_scale;
     uniform sampler2D u_channel_pos;
     uniform sampler2D u_cluster_color;
 
     varying vec3 v_color;
-    varying vec2 v_clu_channel;
+    varying vec2 v_box;
 
-    vec2 get_box_pos(float cluster, float channel) {
+    vec2 get_box_pos(vec2 box) {  // box = (cluster, channel)
         vec2 box_pos = texture2D(u_channel_pos,
-                                 vec2(channel / (nchannels - 1.), .5)).xy;
+                                 vec2(box.y / (nchannels - 1.), .5)).xy;
         box_pos = 2. * box_pos - 1.;
-        box_pos.x += .1 * (cluster - .5 * (nclusters - 1.));
+        box_pos.x += .1 * (box.x - .5 * (nclusters - 1.));
         return box_pos;
     }
 
@@ -64,19 +62,19 @@ class Waveforms(Visual):
 
     void main() {
         vec2 pos = u_data_scale * vec2(a_time, a_data);  // -1..1
-        vec2 box_pos = get_box_pos(a_cluster, a_channel);
-        v_color = get_color(a_cluster);
-        v_clu_channel = vec2(a_cluster, a_channel);
+        vec2 box_pos = get_box_pos(a_box);
+        v_color = get_color(a_box.x);
+        v_box = a_box;
         gl_Position = vec4($transform(pos + box_pos), 0., 1.);
     }
     """
 
     FRAG_SHADER = """
     varying vec3 v_color;
-    varying vec2 v_clu_channel;
+    varying vec2 v_box;
 
     void main() {
-        if ((fract(v_clu_channel.x) > 0.) || (fract(v_clu_channel.y) > 0.))
+        if ((fract(v_box.x) > 0.) || (fract(v_box.y) > 0.))
             discard;
         gl_FragColor = vec4(v_color, 1.);
     }
@@ -109,6 +107,8 @@ class Waveforms(Visual):
 
         a_channel = np.tile(np.repeat(np.arange(nchannels).astype(np.float32),
                                        nsamples), nspikes)
+        a_box = np.c_[a_cluster, a_channel]
+        assert a_box.shape[1] == 2
 
         u_channel_pos = np.dstack((channel_positions.reshape((1,
                                                               nchannels, 2)),
@@ -120,8 +120,7 @@ class Waveforms(Visual):
         self.program = ModularProgram(self.VERT_SHADER, self.FRAG_SHADER)
         self.program['a_data'] = a_data
         self.program['a_time'] = a_time
-        self.program['a_cluster'] = a_cluster
-        self.program['a_channel'] = a_channel
+        self.program['a_box'] = a_box
         self.program['nclusters'] = nclusters
         self.program['nchannels'] = nchannels
         self.program['u_data_scale'] = (.03, .02)
