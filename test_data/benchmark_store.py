@@ -20,9 +20,9 @@ from phy.utils.array import _index_of
 phy.debug()
 
 _store_path = '_store'
-n_spikes = 200000
-n_channels = 200
-n_clusters = 100
+n_spikes = 2000000
+n_channels = 300
+n_clusters = 500
 
 
 # Generate the dataset.
@@ -50,8 +50,8 @@ def _reset_store():
         os.mkdir(path)
 
 
-# _gen_spike_clusters()
-# _gen_arr()
+_gen_spike_clusters()
+_gen_arr()
 
 f = open_h5('test', 'r')
 
@@ -102,27 +102,31 @@ def _gen_store_1(chunk_size):
                 sub_arr[idx].tofile(f)
     # print()
 
-    ds = DiskStore(_store_path)
+    # ds = DiskStore(_store_path)
 
-    # Next, put the flat binary files back to HDF5.
-    # print("flat to HDF5")
-    for cluster in range(n_clusters):
-        # print(cluster, end='\r')
-        data = np.fromfile(_flat_file(cluster),
-                           dtype=np.float32).reshape((-1, n_channels))
-        ds.store(cluster, data=data)
+    # # Next, put the flat binary files back to HDF5.
+    # # print("flat to HDF5")
+    # for cluster in range(n_clusters):
+    #     # print(cluster, end='\r')
+    #     data = np.fromfile(_flat_file(cluster),
+    #                        dtype=np.float32).reshape((-1, n_channels))
+    #     ds.store(cluster, data=data)
+
+
     print("time", default_timer() - t0)
     # print()
 
     # Test.
     cluster = 0
-    arr2 = ds.load(cluster, 'data')
+    # arr2 = ds.load(cluster, 'data')
+    arr2 = np.fromfile(_flat_file(cluster),
+                       dtype=np.float32).reshape((-1, n_channels))
 
     ac(arr[spc[cluster], :], arr2)
 
 
-chunk_sizes = (100, 1000, 10000, 100000)
-chunk_sizes = (10000,)
+# chunk_sizes = (20000, 50000, 100000)
+chunk_sizes = (1000000,)
 
 for chunk_size in chunk_sizes:
     print(chunk_size)
