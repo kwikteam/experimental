@@ -18,9 +18,33 @@ path = '/data/spikesorting/3_nick_full/20141202_all.kwik'
 
 session = Session()
 
-t0 = default_timer()
+# t0 = default_timer()
 session.open(path)
-print(default_timer() - t0)
+
+
+# spike_clusters = session.model.spike_clusters[::10]
+# spike_samples = session.model.spike_samples[::10]
+
+# from phy.stats.ccg import correlograms
+# # Compute the correlograms.
+# ccgs = correlograms(spike_samples,
+#                     spike_clusters,
+#                     binsize=20,
+#                     winsize_bins=51,
+#                     )
+# print(spike_samples.dtype)
+# print(spike_clusters.dtype)
+# exit()
+
+
+# print(session.model.recordings)
+# print(session.model.spike_recordings)
+# print(session.model._recording_offsets)
+# plt.plot(session.model.spike_samples)
+# plt.show()
+# exit()
+
+# print(default_timer() - t0)
 
 
 # Cluster counts.
@@ -37,9 +61,9 @@ session.select(clu)
 # print(session.clustering.n_clusters)
 # session.select([3, 4, 5, 6])
 
-# session.show_correlograms()
-session.show_features()
-session.show_waveforms()
+session.show_correlograms()
+# session.show_features()
+# session.show_waveforms()
 
 run()
 
