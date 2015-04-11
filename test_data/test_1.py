@@ -26,6 +26,7 @@ print(default_timer() - t0)
 # Cluster counts.
 # session.cluster_store.disk_store.clear()
 x = session.clustering.cluster_counts
+print(session.model.recordings)
 cl = (sorted(x.items(), key=operator.itemgetter(1))[::-1][:50])
 clu = [_[0] for _ in cl][1:5]
 
@@ -36,9 +37,9 @@ session.select(clu)
 # print(session.clustering.n_clusters)
 # session.select([3, 4, 5, 6])
 
-session.show_correlograms()
-# session.show_features()
-# session.show_waveforms()
+# session.show_correlograms()
+session.show_features()
+session.show_waveforms()
 
 run()
 
