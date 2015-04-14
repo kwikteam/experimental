@@ -12,7 +12,7 @@ from phy.cluster.manual.session import Session
 
 phy.debug()
 
-# path = '/home/cyrille/1_simple120sec/test_hybrid_120sec.kwik'
+path = '/home/cyrille/1_simple120sec/test_hybrid_120sec.kwik'
 path = '/data/spikesorting/4_20141130/20141130_all.kwik'
 
 session = Session()
@@ -27,8 +27,8 @@ clu = [_[0] for _ in cl][1:4]
 print(clu)
 session.select(clu)
 
-session.show_correlograms()
-session.show_features()
+# session.show_correlograms()
+# session.show_features()
 session.show_waveforms()
 
 run()
