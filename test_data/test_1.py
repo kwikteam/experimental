@@ -28,8 +28,8 @@ print(clu)
 session.select(clu)
 
 # session.show_correlograms()
-# session.show_features()
-session.show_waveforms()
+session.show_features()
+# session.show_waveforms()
 
 run()
 
