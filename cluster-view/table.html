@@ -6,8 +6,8 @@
         html, body, table {
             background-color: black;
             color: white;
-            font-family: sans-serif;
-            font-size: 18pt;
+            font-family: "Helvetica";
+            font-size: 14pt;
             margin: 5px 10px;
         }
 
@@ -26,8 +26,7 @@
 
         table th.sort-header:after {
             content: "\25B2";
-            float: right;
-            margin-left: 3px;
+            margin-left: 5px;
             margin-right: 15px;
             visibility: hidden;
         }
@@ -50,6 +49,10 @@
         }
 
         table tr { cursor:pointer; }
+
+        table tr:hover {
+            background-color: #222;
+        }
 
         table tr.selected td {
             background-color: #444;
@@ -112,8 +115,15 @@
             var id = this.data[i].id;
             tr.id = 'table-id-' + id;
 
-            tr.onclick = function() {
-                that.select([parseInt(this.id.substr(9))]);
+            tr.onclick = function(e) {
+                var selection = [parseInt(this.id.substr(9))];
+
+                var evt = e ? e:window.event;
+                if (evt.ctrlKey || evt.metaKey) {
+                    selection = that.state.selection.concat(selection);
+                }
+
+                that.select(selection);
             }
 
             tbody.appendChild(tr);
@@ -250,45 +260,7 @@
 </head>
 <body>
 
-<!--
-
-data
-    Array of dicts {id: number, skip: bool, key: value}
-
-state
-    sorted key
-    sort direction (asc, desc)
-    selected items
-    pinned item
-
-set_data()
-
-set_state()  // Set the state of the widget.
-state_updated()  // called when the state changes in the widget. Not called after set_state(). Called by the methods below. This method calls the Python side and updates the state.
-
-build()
-
-clear()
-select(items)
-unselect(items)
-
-pin(item)
-unpin()
-
-next()
-previous()
-
--->
-
 <table id="the-table" class="sort">
-<!--    <thead>
-        <tr><th>id</th><th>count</th></tr>
-    </thead>
-    <tbody>
-        <tr><td>1</td><td>20</td></tr>
-        <tr><td>2</td><td>10</td></tr>
-        <tr><td>3</td><td>30</td></tr>
-    </tbody>-->
 </table>
 
 <script>
@@ -298,6 +270,10 @@ previous()
         {id: 1, count: 20},
         {id: 2, count: 10},
         {id: 3, count: 30},
+        {id: 4, count: 40},
+        {id: 5, count: 50},
+        {id: 6, count: 60},
+        {id: 7, count: 70},
                    ]);
     table.set_state({sort_col: 'count', sort_dir: 'desc'});
 
