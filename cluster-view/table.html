@@ -71,8 +71,8 @@
         this.el = el;
         this.data = [];
         this.state = {
-            sort_col: null,
-            sort_dir: null,
+            sortCol: null,
+            sortDir: null,
             selection: [],
             pinned: null,
         }
@@ -141,39 +141,39 @@
         this.el.addEventListener('afterSort', function() {
             for (var header in that.headers) {
                 if (that.headers[header].classList.contains('sort-up')) {
-                    that.state.sort_col = header;
-                    that.state.sort_dir = 'desc';
+                    that.state.sortCol = header;
+                    that.state.sortDir = 'desc';
                     break;
                 }
                 if (that.headers[header].classList.contains('sort-down')) {
-                    that.state.sort_col = header;
-                    that.state.sort_dir = 'asc';
+                    that.state.sortCol = header;
+                    that.state.sortDir = 'asc';
                     break;
                 }
             }
         });
     }
 
-    Table.prototype.set_data = function(data) {
+    Table.prototype.setData = function(data) {
         this.data = data;
         this.build()
     }
 
-    Table.prototype.set_state = function(state) {
+    Table.prototype.setState = function(state) {
 
-        // Make sure both sort_col and sort_dir are specified.
-        if (!('sort_col' in state) && ('sort_dir' in state)) {
-            state.sort_col = this.state.sort_col;
+        // Make sure both sortCol and sortDir are specified.
+        if (!('sortCol' in state) && ('sortDir' in state)) {
+            state.sortCol = this.state.sortCol;
         }
-        if (!('sort_dir' in state) && ('sort_col' in state)) {
-            state.sort_dir = this.state.sort_dir;
+        if (!('sortDir' in state) && ('sortCol' in state)) {
+            state.sortDir = this.state.sortDir;
         }
 
-        if ('sort_col' in state) {
+        if ('sortCol' in state) {
 
             // Update the state.
-            this.state.sort_col = state.sort_col;
-            this.state.sort_dir = state.sort_dir;
+            this.state.sortCol = state.sortCol;
+            this.state.sortDir = state.sortDir;
 
             // Remove all sorts.
             for (var h in this.headers) {
@@ -182,8 +182,8 @@
             }
 
             // Set the sort direction in the header class.
-            var header = this.headers[state.sort_col];
-            header.classList.add(state.sort_dir === 'desc' ?
+            var header = this.headers[state.sortCol];
+            header.classList.add(state.sortDir === 'desc' ?
                                  'sort-down' : 'sort-up');
 
             // Sort the table.
@@ -191,15 +191,15 @@
         }
         if ('selection' in state) {
             this.state.selection = state.selection;
-            this.set_row_class('selected', state.selection);
+            this.setRowClass('selected', state.selection);
         }
         if ('pinned' in state) {
             this.state.pinned = state.pinned;
-            this.set_row_class('pinned', state.pinned);
+            this.setRowClass('pinned', state.pinned);
         }
     }
 
-    Table.prototype.set_row_class = function(name, ids) {
+    Table.prototype.setRowClass = function(name, ids) {
         // Remove the selection class on all rows.
         for (var id in this.rows) {
             var row = this.rows[id];
@@ -213,45 +213,45 @@
         }
     }
 
-    Table.prototype.state_updated = function() {
-        // TODO: call widget.set_state(this.state);
+    Table.prototype.stateUpdated = function() {
+        // TODO: call widget.setState(this.state);
     }
 
     Table.prototype.clear = function() {
-        this.set_state({
+        this.setState({
             selection: [],
             pinned: null,
         });
     }
 
     Table.prototype.select = function(items) {
-        this.set_state({
+        this.setState({
             selection: items,
         });
     }
 
     Table.prototype.pin = function(item) {
-        this.set_state({
+        this.setState({
             pinned: item,
         });
     }
 
     Table.prototype.unpin = function() {
-        this.set_state({
+        this.setState({
             pinned: [],
         });
     }
 
     Table.prototype.next = function() {
         // TODO: find items: keep the pinned, move to the next non-skip
-        this.set_state({
+        this.setState({
             selection: items,
         });
     }
 
     Table.prototype.previous = function() {
         // TODO: find items: keep the pinned, move to the previous non-skip
-        this.set_state({
+        this.setState({
             selection: items,
         });
     }
@@ -266,7 +266,7 @@
 <script>
 
     var table = new Table(document.getElementById('the-table'));
-    table.set_data([
+    table.setData([
         {id: 1, count: 20},
         {id: 2, count: 10},
         {id: 3, count: 30},
@@ -275,7 +275,7 @@
         {id: 6, count: 60},
         {id: 7, count: 70},
                    ]);
-    table.set_state({sort_col: 'count', sort_dir: 'desc'});
+    table.setState({sortCol: 'count', sortDir: 'desc'});
 
 </script>
 
