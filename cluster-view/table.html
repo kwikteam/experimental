@@ -66,6 +66,10 @@
             background-color: #888;
         }
 
+        table tr[data-skip='true'] {
+            color: #888;
+        }
+
     </style>
     <script src="tablesort.min.js"></script>
 
@@ -84,7 +88,7 @@
         this.tablesort = null;
     };
 
-    Table.prototype.build = function(data) {
+    Table.prototype.setData = function(data) {
         if (data.items.length == 0) return;
         var that = this;
         var keys = data.cols;
@@ -112,12 +116,13 @@
                 var value = row[key];
                 var td = document.createElement("td");
                 td.appendChild(document.createTextNode(value));
-                td.dataset[key] = value;
                 tr.appendChild(td);
             }
-            // Set the id.
-            var id = data.items[i].id;
-            tr.dataset.id = id;
+
+            // Set the data values on the row.
+            for (var key in row) {
+                tr.dataset[key] = row[key];
+            }
 
             tr.onclick = function(e) {
                 var selected = [parseInt(this.dataset.id)];
@@ -130,7 +135,7 @@
             }
 
             tbody.appendChild(tr);
-            this.rows[id] = tr;
+            this.rows[data.items[i].id] = tr;
         }
 
         this.el.appendChild(thead);
@@ -155,10 +160,6 @@
                 }
             }
         });
-    };
-
-    Table.prototype.setData = function(data) {
-        this.build(data)
     };
 
     Table.prototype.setState = function(state) {
@@ -307,7 +308,7 @@
                            {id: 2, count: 10},
                            {id: 3, count: 30},
                            {id: 4, count: 40},
-                           {id: 5, count: 50},
+                           {id: 5, count: 50, skip: true},
                            {id: 6, count: 60},
                            {id: 7, count: 70},
                    ]});
