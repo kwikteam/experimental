@@ -246,14 +246,47 @@
     };
 
     Table.prototype.next = function() {
-        // TODO: find items: keep the pinned, move to the next non-skip
+        if (this.state.selected.length != 1) return;
+        var id = this.state.selected[0];
+        var row = this.rows[id];
+        var i0 = row.rowIndex + 1;
+        var items = [];
+
+        for (var i = i0; i < this.el.rows.length; i++) {
+            row = this.el.rows[i];
+            if (!(row.dataset.skip)) {
+                items.push(row.dataset.id);
+                break;
+            }
+        }
+
+        if (!(items.length)) return;
+
+        // TODO: keep the pinned
         this.setState({
             selected: items,
         });
     };
 
     Table.prototype.previous = function() {
-        // TODO: find items: keep the pinned, move to the previous non-skip
+        if (this.state.selected.length != 1) return;
+        var id = this.state.selected[0];
+        var row = this.rows[id];
+        var i0 = row.rowIndex - 1;
+        var items = [];
+
+        // NOTE: i >= 1 because we skip the header column.
+        for (var i = i0; i >= 1; i--) {
+            row = this.el.rows[i];
+            if (!(row.dataset.skip)) {
+                items.push(row.dataset.id);
+                break;
+            }
+        }
+
+        if (!(items.length)) return;
+
+        // TODO: keep the pinned
         this.setState({
             selected: items,
         });
