@@ -73,11 +73,10 @@
 
     var Table = function (el) {
         this.el = el;
-        this.data = [];
         this.state = {
             sortCol: null,
             sortDir: null,
-            selection: [],
+            selected: [],
             pinned: null,
         }
         this.headers = {};  // {name: th} mapping
@@ -86,10 +85,10 @@
 
     };
 
-    Table.prototype.build = function() {
-        if (this.data.length == 0) return;
+    Table.prototype.build = function(data) {
+        if (data.length == 0) return;
         var that = this;
-        var keys = Object.getOwnPropertyNames(this.data[0]);
+        var keys = Object.getOwnPropertyNames(data[0]);
 
         var thead = document.createElement("thead");
         var tbody = document.createElement("tbody");
@@ -106,28 +105,30 @@
         thead.appendChild(tr);
 
         // Data rows.
-        for (var i = 0; i < this.data.length; i++) {
+        for (var i = 0; i < data.length; i++) {
             tr = document.createElement("tr");
-            var row = this.data[i];
+            var row = data[i];
             for (var j = 0; j < keys.length; j++) {
                 var key = keys[j];
+                var value = row[key];
                 var td = document.createElement("td");
-                td.appendChild(document.createTextNode(row[key]));
+                td.appendChild(document.createTextNode(value));
+                td.dataset[key] = value;
                 tr.appendChild(td);
             }
             // Set the id.
-            var id = this.data[i].id;
-            tr.id = 'table-id-' + id;
+            var id = data[i].id;
+            tr.dataset.id = id;
+            // tr.id = 'table-id-' + id;
 
             tr.onclick = function(e) {
-                var selection = [parseInt(this.id.substr(9))];
+                var selected = [parseInt(this.dataset.id)];
 
                 var evt = e ? e:window.event;
                 if (evt.ctrlKey || evt.metaKey) {
-                    selection = that.state.selection.concat(selection);
+                    selected = that.state.selected.concat(selected);
                 }
-
-                that.select(selection);
+                that.select(selected);
             }
 
             tbody.appendChild(tr);
@@ -159,8 +160,7 @@
     }
 
     Table.prototype.setData = function(data) {
-        this.data = data;
-        this.build()
+        this.build(data)
     }
 
     Table.prototype.setState = function(state) {
@@ -193,24 +193,25 @@
             // Sort the table.
             this.tablesort.sortTable(header);
         }
-        if ('selection' in state) {
-            this.state.selection = state.selection;
-            this.setRowClass('selected', state.selection);
+        if ('selected' in state) {
+            this.setRowClass('selected', state.selected);
+            this.state.selected = state.selected;
         }
         if ('pinned' in state) {
-            this.state.pinned = state.pinned;
             this.setRowClass('pinned', state.pinned);
+            this.state.pinned = state.pinned;
         }
     }
 
     Table.prototype.setRowClass = function(name, ids) {
-        // Remove the selection class on all rows.
-        for (var id in this.rows) {
+        // Remove the class on all rows.
+        for (var i = 0; i < this.state[name].length; i++) {
+            var id = this.state[name][i];
             var row = this.rows[id];
             row.classList.remove(name);
         }
 
-        // Add the selection class.
+        // Add the class.
         for (var i = 0; i < ids.length; i++) {
             var id = ids[i];
             this.rows[id].classList.add(name);
@@ -223,14 +224,14 @@
 
     Table.prototype.clear = function() {
         this.setState({
-            selection: [],
+            selected: [],
             pinned: null,
         });
     }
 
     Table.prototype.select = function(items) {
         this.setState({
-            selection: items,
+            selected: items,
         });
     }
 
@@ -249,14 +250,14 @@
     Table.prototype.next = function() {
         // TODO: find items: keep the pinned, move to the next non-skip
         this.setState({
-            selection: items,
+            selected: items,
         });
     }
 
     Table.prototype.previous = function() {
         // TODO: find items: keep the pinned, move to the previous non-skip
         this.setState({
-            selection: items,
+            selected: items,
         });
     }
 
